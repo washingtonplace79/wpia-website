@@ -1,0 +1,46 @@
+---
+interface Props {
+  icon: string;
+  label: string;
+  desc: string;
+  href: string;
+}
+
+const { icon, label, desc, href } = Astro.props;
+---
+
+<a href={href} class="qlc">
+  <div class="qlc-icon" aria-hidden="true">{icon}</div>
+  <div class="qlc-label">{label}</div>
+  <div class="qlc-desc">{desc}</div>
+</a>
+
+<style>
+.qlc {
+  background: #fff;
+  border: 1px solid #e8e6df;
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-decoration: none;
+  display: block;
+  transition: border-color 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.qlc:hover {
+  border-color: #1a4d2e;
+}
+.qlc-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.qlc-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #2C2C2A;
+  margin-bottom: 4px;
+}
+.qlc-desc {
+  font-size: 13px;
+  color: #888780;
+}
+</style>

@@ -1,0 +1,36 @@
+---
+interface Props {
+  label: string;
+}
+
+const { label } = Astro.props;
+
+const colors: Record<string, { bg: string; color: string }> = {
+  Event:          { bg: '#E1F5EE', color: '#085041' },
+  Infrastructure: { bg: '#FAEEDA', color: '#633806' },
+  Governance:     { bg: '#EEEDFE', color: '#3C3489' },
+  Community:      { bg: '#FAECE7', color: '#712B13' },
+  Volunteer:      { bg: '#EAF3DE', color: '#27500A' },
+  Social:         { bg: '#FBEAF0', color: '#72243E' },
+  Financial:      { bg: '#E6F1FB', color: '#0C447C' },
+  Minutes:        { bg: '#F1EFE8', color: '#444441' },
+};
+
+const style = colors[label] ?? { bg: '#F0EFE9', color: '#444441' };
+---
+
+<span class="badge" style={`background:${style.bg};color:${style.color};`}>{label}</span>
+
+<style>
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+</style>

@@ -1,0 +1,77 @@
+---
+interface Props {
+  name: string;
+  role: string;
+  email?: string;
+  order: number;
+}
+
+const { name, role, email } = Astro.props;
+
+const initials = name
+  .split(' ')
+  .map((n: string) => n[0])
+  .join('')
+  .substring(0, 2)
+  .toUpperCase();
+
+const colorPairs = [
+  { bg: '#E1F5EE', color: '#085041' },
+  { bg: '#EEEDFE', color: '#3C3489' },
+  { bg: '#FAEEDA', color: '#633806' },
+  { bg: '#FAECE7', color: '#712B13' },
+];
+
+const { bg, color } = colorPairs[name.charCodeAt(0) % colorPairs.length];
+---
+
+<div class="board-member">
+  <div class="board-avatar" style={`background:${bg};color:${color};`}>
+    {initials}
+  </div>
+  <div>
+    <div class="board-name">
+      {email ? <a href={`mailto:${email}`}>{name}</a> : name}
+    </div>
+    <div class="board-role">{role}</div>
+  </div>
+</div>
+
+<style>
+.board-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+.board-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  flex-shrink: 0;
+}
+.board-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2C2C2A;
+  font-family: 'DM Sans', sans-serif;
+}
+.board-name a {
+  color: #2C2C2A;
+  text-decoration: none;
+}
+.board-name a:hover {
+  color: #1a4d2e;
+}
+.board-role {
+  font-size: 12px;
+  color: #888780;
+  font-family: 'DM Sans', sans-serif;
+}
+</style>

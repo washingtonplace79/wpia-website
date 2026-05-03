@@ -1,0 +1,69 @@
+---
+const currentPath = Astro.url.pathname;
+
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/news/', label: 'News' },
+  { href: '/events/', label: 'Events' },
+  { href: '/documents/', label: 'Documents' },
+  { href: '/contact/', label: 'Contact' },
+];
+
+function isActive(href: string): boolean {
+  if (href === '/') return currentPath === '/';
+  return currentPath.startsWith(href);
+}
+---
+
+<nav class="site-nav" aria-label="Main navigation">
+  <div class="nav-inner">
+    {links.map(link => (
+      <a href={link.href} class:list={['nav-link', { active: isActive(link.href) }]}>
+        {link.label}
+      </a>
+    ))}
+  </div>
+</nav>
+
+<style>
+.site-nav {
+  background: #fff;
+  border-bottom: 1px solid #e8e6df;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  gap: 28px;
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-inner::-webkit-scrollbar {
+  display: none;
+}
+.nav-link {
+  display: block;
+  font-size: 15px;
+  font-weight: 400;
+  color: #5F5E5A;
+  text-decoration: none;
+  padding: 12px 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.nav-link:hover {
+  color: #1a4d2e;
+}
+.nav-link.active {
+  font-weight: 500;
+  color: #1a4d2e;
+  border-bottom-color: #1a4d2e;
+}
+</style>

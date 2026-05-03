@@ -1,0 +1,116 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Badge from '../../components/Badge.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('news');
+  return posts.map(post => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const formattedDate = post.data.date.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout
+  title={`${post.data.title} | Washington Place Improvement Association`}
+  description={post.data.excerpt}
+>
+  <article class="post-wrapper">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/news/">← Back to news</a>
+    </nav>
+    <header class="post-header">
+      <div class="post-meta">
+        <Badge label={post.data.tag} />
+        <span class="post-date">{formattedDate} · {post.data.author}</span>
+      </div>
+      <h1 class="post-title">{post.data.title}</h1>
+      <p class="post-excerpt">{post.data.excerpt}</p>
+    </header>
+    <div class="post-body">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+.post-wrapper {
+  padding-top: 32px;
+  padding-bottom: 60px;
+  max-width: 720px;
+}
+.breadcrumb {
+  margin-bottom: 24px;
+}
+.breadcrumb a {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #5F5E5A;
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  color: #1a4d2e;
+}
+.post-header {
+  margin-bottom: 32px;
+}
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.post-date {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: #888780;
+}
+.post-title {
+  margin: 0 0 12px;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.post-excerpt {
+  margin: 0;
+  font-size: 17px;
+  color: #5F5E5A;
+  line-height: 1.6;
+  font-family: 'DM Sans', sans-serif;
+  padding-left: 16px;
+  border-left: 3px solid #1a4d2e;
+}
+.post-body {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  color: #2C2C2A;
+}
+.post-body :global(h2),
+.post-body :global(h3) {
+  font-family: 'Source Serif 4', Georgia, serif;
+  margin-top: 32px;
+}
+.post-body :global(p) {
+  margin: 0 0 16px;
+}
+.post-body :global(ul),
+.post-body :global(ol) {
+  margin: 0 0 16px;
+  padding-left: 24px;
+}
+.post-body :global(li) {
+  margin-bottom: 6px;
+}
+</style>

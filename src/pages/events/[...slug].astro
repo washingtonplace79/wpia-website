@@ -1,0 +1,238 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Badge from '../../components/Badge.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const events = await getCollection('events');
+  return events
+    .filter(e => e.data.featured)
+    .map(event => ({
+      params: { slug: event.id },
+      props: { event },
+    }));
+}
+
+const { event } = Astro.props;
+const { Content } = await render(event);
+
+const today = new Date();
+today.setUTCHours(0, 0, 0, 0);
+const isPast = event.data.date < today;
+
+const formattedDate = event.data.date.toLocaleDateString('en-US', {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+const timeRange = event.data.endTime
+  ? `${event.data.startTime} – ${event.data.endTime}`
+  : event.data.startTime;
+---
+
+<BaseLayout title={`${event.data.title} | Washington Place Improvement Association`}>
+  <!-- Hero image -->
+  {event.data.heroImage && (
+    <div class="event-hero">
+      <img src={event.data.heroImage} alt={event.data.title} class="event-hero-img" />
+    </div>
+  )}
+
+  <article class="event-wrapper">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/events/">← Back to events</a>
+    </nav>
+
+    <!-- Header -->
+    <header class="event-header">
+      <div class="event-badges">
+        <Badge label={event.data.type} />
+        {isPast && <span class="past-badge">Past event</span>}
+      </div>
+      <h1 class="event-title">{event.data.title}</h1>
+
+      <dl class="event-meta-grid">
+        <div class="meta-item">
+          <dt>Date</dt>
+          <dd>{formattedDate}</dd>
+        </div>
+        <div class="meta-item">
+          <dt>Time</dt>
+          <dd>{timeRange}</dd>
+        </div>
+        <div class="meta-item">
+          <dt>Location</dt>
+          <dd>{event.data.location}</dd>
+        </div>
+      </dl>
+    </header>
+
+    <!-- Body -->
+    <div class="event-body">
+      <Content />
+    </div>
+
+    <!-- Photo gallery (past events) -->
+    {event.data.gallery && event.data.gallery.length > 0 && (
+      <section class="gallery-section">
+        <h2>Photos</h2>
+        <div class="gallery-grid">
+          {event.data.gallery.map((src, i) => (
+            <a href={src} class="gallery-item" target="_blank" rel="noopener">
+              <img src={src} alt={`${event.data.title} photo ${i + 1}`} loading="lazy" />
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </article>
+</BaseLayout>
+
+<style>
+.event-hero {
+  width: 100%;
+  max-height: 420px;
+  overflow: hidden;
+  background: #e8e6df;
+}
+.event-hero-img {
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+  display: block;
+}
+.event-wrapper {
+  padding-top: 32px;
+  padding-bottom: 60px;
+  max-width: 720px;
+}
+.breadcrumb {
+  margin-bottom: 24px;
+}
+.breadcrumb a {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #5F5E5A;
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  color: #1a4d2e;
+}
+.event-header {
+  margin-bottom: 32px;
+}
+.event-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.past-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #888780;
+  background: #F0EFE9;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+.event-title {
+  margin: 0 0 20px;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.event-meta-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 40px;
+  margin: 0;
+  padding: 20px 24px;
+  background: #fff;
+  border: 1px solid #e8e6df;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+}
+.meta-item dt {
+  font-size: 11px;
+  font-weight: 500;
+  color: #888780;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+}
+.meta-item dd {
+  margin: 0;
+  font-size: 15px;
+  color: #2C2C2A;
+  font-weight: 500;
+}
+.event-body {
+  margin-top: 32px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  color: #2C2C2A;
+}
+.event-body :global(h2),
+.event-body :global(h3) {
+  font-family: 'Source Serif 4', Georgia, serif;
+  margin-top: 32px;
+}
+.event-body :global(p) {
+  margin: 0 0 16px;
+}
+.event-body :global(ul),
+.event-body :global(ol) {
+  margin: 0 0 16px;
+  padding-left: 24px;
+}
+.event-body :global(li) {
+  margin-bottom: 6px;
+}
+.gallery-section {
+  margin-top: 48px;
+}
+.gallery-section h2 {
+  font-size: 20px;
+  font-weight: 500;
+  color: #1a4d2e;
+  margin: 0 0 20px;
+}
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.gallery-item {
+  display: block;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #F0EFE9;
+}
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+.gallery-item:hover img {
+  transform: scale(1.03);
+}
+
+@media (max-width: 640px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .event-hero-img {
+    height: 220px;
+  }
+}
+</style>

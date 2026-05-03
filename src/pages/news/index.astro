@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NewsCard from '../../components/NewsCard.astro';
+import { getCollection } from 'astro:content';
+
+const allNews = await getCollection('news');
+const sortedNews = allNews.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="News & Announcements | Washington Place Improvement Association">
+  <div class="page-header">
+    <h2>News &amp; announcements</h2>
+  </div>
+  <div class="news-list">
+    {sortedNews.map(post => (
+      <NewsCard
+        title={post.data.title}
+        date={post.data.date}
+        author={post.data.author}
+        tag={post.data.tag}
+        excerpt={post.data.excerpt}
+        slug={post.id}
+      />
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+.page-header {
+  padding-top: 32px;
+  margin-bottom: 24px;
+}
+.page-header h2 {
+  font-size: 24px;
+  font-weight: 500;
+  color: #1a4d2e;
+  margin: 0;
+}
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 40px;
+}
+</style>

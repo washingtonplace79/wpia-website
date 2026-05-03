@@ -1,0 +1,112 @@
+---
+import Badge from './Badge.astro';
+
+interface Props {
+  title: string;
+  date: Date;
+  startTime: string;
+  endTime?: string;
+  location: string;
+  type: string;
+  featured?: boolean;
+  slug?: string;
+}
+
+const { title, date, startTime, endTime, location, type, featured = false, slug } = Astro.props;
+
+const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+const day = date.getUTCDate();
+const timeRange = endTime ? `${startTime} – ${endTime}` : startTime;
+const href = featured && slug ? `/events/${slug}/` : null;
+
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag href={href || undefined} class:list={['event-card', { 'event-card--link': !!href }]}>
+  <div class="event-date-block" aria-hidden="true">
+    <div class="event-day">{day}</div>
+    <div class="event-month">{month}</div>
+  </div>
+  <div class="event-details">
+    <div class="event-title-row">
+      <h4 class="event-title">{title}</h4>
+      <Badge label={type} />
+    </div>
+    <p class="event-meta">{timeRange} · {location}</p>
+  </div>
+  {href && <span class="event-chevron" aria-hidden="true">›</span>}
+</Tag>
+
+<style>
+.event-card {
+  background: #fff;
+  border: 1px solid #e8e6df;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-decoration: none;
+  color: inherit;
+}
+.event-card--link {
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.event-card--link:hover {
+  border-color: #1a4d2e;
+}
+.event-date-block {
+  min-width: 64px;
+  text-align: center;
+  padding: 10px 6px;
+  background: #F0EFE9;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  flex-shrink: 0;
+}
+.event-day {
+  font-size: 22px;
+  font-weight: 500;
+  color: #1a4d2e;
+  line-height: 1.2;
+}
+.event-month {
+  font-size: 11px;
+  color: #5F5E5A;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.event-details {
+  flex: 1;
+  min-width: 0;
+}
+.event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.event-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+.event-meta {
+  margin: 0;
+  font-size: 13px;
+  color: #888780;
+  font-family: 'DM Sans', sans-serif;
+}
+.event-chevron {
+  font-size: 20px;
+  color: #c0bdb5;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.event-card--link:hover .event-chevron {
+  color: #1a4d2e;
+}
+</style>

@@ -1,0 +1,69 @@
+---
+import Badge from './Badge.astro';
+
+interface Props {
+  name: string;
+  category: string;
+  date: string;
+  file: string;
+  size?: string;
+}
+
+const { name, category, date, file, size } = Astro.props;
+---
+
+<div class="doc-row">
+  <div class="doc-info">
+    <div class="doc-icon" aria-hidden="true">📄</div>
+    <div>
+      <a href={file} class="doc-name" download>{name}</a>
+      <div class="doc-meta">{date}{size ? ` · ${size}` : ''}</div>
+    </div>
+  </div>
+  <Badge label={category} />
+</div>
+
+<style>
+.doc-row {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0efe9;
+  font-family: 'DM Sans', sans-serif;
+  gap: 16px;
+}
+.doc-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.doc-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #F0EFE9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.doc-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2C2C2A;
+  text-decoration: none;
+  display: block;
+  margin-bottom: 2px;
+}
+.doc-name:hover {
+  color: #1a4d2e;
+  text-decoration: underline;
+}
+.doc-meta {
+  font-size: 12px;
+  color: #888780;
+}
+</style>

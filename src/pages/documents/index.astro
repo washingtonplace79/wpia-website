@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DocumentRow from '../../components/DocumentRow.astro';
+import { getCollection } from 'astro:content';
+
+const allDocs = await getCollection('documents');
+const sortedDocs = allDocs.sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+const categories = ['All', ...Array.from(new Set(sortedDocs.map(d => d.data.category))).sort()];
+---
+
+<BaseLayout title="Documents | Washington Place Improvement Association">
+  <div class="page-header">
+    <h2>Documents</h2>
+  </div>
+
+  <div class="filter-pills" role="group" aria-label="Filter by category">
+    {categories.map(cat => (
+      <button
+        class:list={['filter-pill', { active: cat === 'All' }]}
+        data-filter={cat}
+        type="button"
+      >
+        {cat}
+      </button>
+    ))}
+  </div>
+
+  <div class="doc-list">
+    {sortedDocs.map(doc => (
+      <div class="doc-item" data-category={doc.data.category}>
+        <DocumentRow
+          name={doc.data.name}
+          category={doc.data.category}
+          date={doc.data.date}
+          file={doc.data.file}
+          size={doc.data.size}
+        />
+      </div>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+.page-header {
+  padding-top: 32px;
+  margin-bottom: 20px;
+}
+.page-header h2 {
+  font-size: 24px;
+  font-weight: 500;
+  color: #1a4d2e;
+  margin: 0;
+}
+.filter-pills {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  font-family: 'DM Sans', sans-serif;
+}
+.filter-pill {
+  background: #fff;
+  color: #5F5E5A;
+  border: 1px solid #e8e6df;
+  border-radius: 99px;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 400;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.filter-pill:hover,
+.filter-pill.active {
+  background: #1a4d2e;
+  color: #fff;
+  border-color: #1a4d2e;
+  font-weight: 500;
+}
+.doc-list {
+  background: #fff;
+  border: 1px solid #e8e6df;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+.doc-item[hidden] {
+  display: none;
+}
+</style>
+
+<script>
+function updateDocList() {
+  const pills = document.querySelectorAll<HTMLButtonElement>('.filter-pill');
+  const items = document.querySelectorAll<HTMLElement>('.doc-item');
+
+  pills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      const filter = pill.dataset.filter!;
+      pills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      items.forEach(item => {
+        item.hidden = filter !== 'All' && item.dataset.category !== filter;
+      });
+
+      // Remove border from last visible row
+      const rows = document.querySelectorAll<HTMLElement>('.doc-row');
+      rows.forEach(r => (r.style.borderBottom = '1px solid #f0efe9'));
+      const visible = [...items].filter(i => !i.hidden);
+      if (visible.length > 0) {
+        const lastRow = visible[visible.length - 1].querySelector<HTMLElement>('.doc-row');
+        if (lastRow) lastRow.style.borderBottom = 'none';
+      }
+    });
+  });
+
+  // Set initial last-row border on load
+  const lastRow = [...items].at(-1)?.querySelector<HTMLElement>('.doc-row');
+  if (lastRow) lastRow.style.borderBottom = 'none';
+}
+
+updateDocList();
+</script>

@@ -1,0 +1,101 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: public/uploads
+public_folder: /uploads
+
+collections:
+  - name: news
+    label: News & Announcements
+    folder: src/content/news
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - label: Date
+        name: date
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "MMMM D, YYYY"
+        time_format: false
+        picker_utc: true
+      - { label: Author, name: author, widget: string, default: "Board of Directors" }
+      - label: Tag
+        name: tag
+        widget: select
+        options: ["Event", "Infrastructure", "Governance", "Community"]
+      - { label: Excerpt, name: excerpt, widget: text, hint: "Short summary shown on listing pages (aim for ~200 characters)." }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: events
+    label: Events
+    folder: src/content/events
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - label: Date
+        name: date
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "MMMM D, YYYY"
+        time_format: false
+        picker_utc: true
+      - { label: Start Time, name: startTime, widget: string, hint: 'e.g. "9:00 AM"' }
+      - { label: End Time, name: endTime, widget: string, required: false, hint: 'e.g. "1:00 PM" — leave blank if open-ended.' }
+      - { label: Location, name: location, widget: string }
+      - label: Type
+        name: type
+        widget: select
+        options: ["Volunteer", "Governance", "Social"]
+      - label: "Create detail page?"
+        name: featured
+        widget: boolean
+        default: false
+        hint: "Turn on to give this event its own page with full details, hero image, and photo gallery."
+      - label: "Hero Image / Flyer"
+        name: heroImage
+        widget: image
+        required: false
+        hint: "Banner image shown at the top of the event detail page. Recommended: 1200×600px or wider."
+      - { label: Description, name: body, widget: markdown, required: false }
+      - label: "Photo Gallery (past events)"
+        name: gallery
+        widget: list
+        required: false
+        hint: "Add photos after the event has taken place."
+        field:
+          label: Photo
+          name: photo
+          widget: image
+
+  - name: documents
+    label: Documents
+    folder: src/content/documents
+    create: true
+    format: yml
+    extension: yml
+    identifier_field: name
+    fields:
+      - { label: Name, name: name, widget: string }
+      - label: Category
+        name: category
+        widget: select
+        options: ["Governance", "Minutes", "Financial"]
+      - { label: Date, name: date, widget: string, hint: 'Display date, e.g. "Jan 2025" or "Mar 2026".' }
+      - { label: File, name: file, widget: file }
+      - { label: File Size, name: size, widget: string, required: false, hint: 'e.g. "245 KB" — optional.' }
+
+  - name: board
+    label: Board Members
+    folder: src/content/board
+    create: true
+    format: yml
+    extension: yml
+    identifier_field: name
+    fields:
+      - { label: Name, name: name, widget: string }
+      - { label: Role, name: role, widget: string, hint: 'e.g. "President", "Vice President", "Treasurer".' }
+      - { label: Email, name: email, widget: string, required: false }
+      - { label: Display Order, name: order, widget: number, default: 99, hint: "Lower numbers appear first on the Contact page." }
