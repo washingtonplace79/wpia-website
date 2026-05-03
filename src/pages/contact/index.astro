@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BoardMember from '../../components/BoardMember.astro';
+import PayDuesButton from '../../components/PayDuesButton.astro';
 import { getCollection } from 'astro:content';
 
 const boardMembers = await getCollection('board');
@@ -18,21 +19,19 @@ const sortedBoard = boardMembers.sort((a, b) => a.data.order - b.data.order);
       <dl class="contact-info">
         <div class="contact-row">
           <dt>Email</dt>
-          <dd><a href="mailto:board@washingtonplace.org">board@washingtonplace.org</a></dd>
+          <dd><a href="mailto:executivecommittee@washingtonplace.org">executivecommittee@washingtonplace.org</a></dd>
         </div>
         <div class="contact-row">
           <dt>Mail</dt>
-          <dd>PO Box 1987, Washington Place, MO 63143</dd>
-        </div>
-        <div class="contact-row">
-          <dt>Meetings</dt>
-          <dd>First Monday of each month, 7 PM</dd>
-        </div>
-        <div class="contact-row">
-          <dt>Location</dt>
-          <dd>Community Center, Room 2</dd>
+          <dd>5096 Washington Place, Saint Louis, MO 63108</dd>
         </div>
       </dl>
+
+      <div class="dues-block">
+        <h4>Annual dues</h4>
+        <p>WPIA dues are $75/household and fund Traffic Circle upkeep, the gate, and neighborhood social events.</p>
+        <PayDuesButton />
+      </div>
     </div>
 
     <div class="card">
@@ -143,6 +142,25 @@ const sortedBoard = boardMembers.sort((a, b) => a.data.order - b.data.order);
 }
 .contact-info a:hover {
   text-decoration: underline;
+}
+.dues-block {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f0efe9;
+}
+.dues-block h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2C2C2A;
+  font-family: 'DM Sans', sans-serif;
+}
+.dues-block p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #5F5E5A;
+  line-height: 1.5;
+  font-family: 'DM Sans', sans-serif;
 }
 .form-card {
   margin-bottom: 40px;

@@ -8,7 +8,7 @@ export async function getStaticPaths() {
   return events
     .filter(e => e.data.featured)
     .map(event => ({
-      params: { slug: event.id },
+      params: { slug: event.id.replace(/\.mdx?$/, '') },
       props: { event },
     }));
 }

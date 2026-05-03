@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Badge from '../components/Badge.astro';
-import QuickLinkCard from '../components/QuickLinkCard.astro';
 import { getCollection } from 'astro:content';
 
 const allNews = await getCollection('news');
@@ -9,73 +8,132 @@ const recentNews = allNews
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
-const quickLinks = [
-  { icon: '📰', label: 'Latest news', desc: 'Announcements & updates', href: '/news/' },
-  { icon: '📅', label: 'Upcoming events', desc: 'Calendar & RSVPs', href: '/events/' },
-  { icon: '📁', label: 'Documents', desc: 'Bylaws, minutes & more', href: '/documents/' },
-];
+const today = new Date();
+today.setUTCHours(0, 0, 0, 0);
+const allEvents = await getCollection('events');
+const upcomingEvents = allEvents
+  .filter(e => e.data.date >= today)
+  .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf())
+  .slice(0, 3);
 ---
 
 <BaseLayout title="Washington Place Improvement Association">
-  <div class="hero">
-    <h2>Welcome to our neighborhood</h2>
-    <p>Stay connected with your neighbors — find the latest news, upcoming events, and important documents all in one place.</p>
-  </div>
-
-  <div class="quick-links">
-    {quickLinks.map(link => <QuickLinkCard {...link} />)}
-  </div>
-
-  <section>
-    <h3 class="section-heading">Recent news</h3>
-    <div class="news-preview-list">
-      {recentNews.map(post => {
-        const formattedDate = post.data.date.toLocaleDateString('en-US', {
-          year: 'numeric', month: 'long', day: 'numeric',
-        });
-        return (
-          <a href={`/news/${post.id}/`} class="news-preview-row">
-            <div class="news-preview-meta">
-              <Badge label={post.data.tag} />
-              <span class="preview-date">{formattedDate}</span>
-            </div>
-            <h4 class="news-preview-title">{post.data.title}</h4>
-            <p class="news-preview-excerpt">{post.data.excerpt.substring(0, 120)}…</p>
-          </a>
-        );
-      })}
+  <section class="hero">
+    <div class="hero-title-block">
+      <span class="hero-eyebrow">Welcome to</span>
+      <h2 class="hero-title">Washington Place</h2>
+      <p class="hero-tagline">St. Louis, Missouri &nbsp;·&nbsp; 5000–5200 Blocks &nbsp;·&nbsp; Established Circa 1904</p>
     </div>
-    <a href="/news/" class="view-all-link">View all news →</a>
+    <figure class="hero-figure">
+      <img src="/images/dogwood-hero.jpg" alt="Dogwood blossoms in the neighborhood" />
+    </figure>
   </section>
+
+  <div class="previews-grid">
+    <section class="preview-col">
+      <h3 class="section-heading">Recent news</h3>
+      <div class="preview-list">
+        {recentNews.map(post => {
+          const formattedDate = post.data.date.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric',
+          });
+          return (
+            <a href={`/news/${post.id.replace(/\.mdx?$/, '')}/`} class="preview-row">
+              <div class="preview-meta">
+                <Badge label={post.data.tag} />
+                <span class="preview-date">{formattedDate}</span>
+              </div>
+              <h4 class="preview-title">{post.data.title}</h4>
+              <p class="preview-excerpt">{post.data.excerpt.substring(0, 120)}…</p>
+            </a>
+          );
+        })}
+      </div>
+      <a href="/news/" class="view-all-link">View all news →</a>
+    </section>
+
+    <section class="preview-col">
+      <h3 class="section-heading">Upcoming events</h3>
+      <div class="preview-list">
+        {upcomingEvents.length > 0 ? upcomingEvents.map(event => {
+          const formattedDate = event.data.date.toLocaleDateString('en-US', {
+            weekday: 'short', month: 'long', day: 'numeric', timeZone: 'UTC',
+          });
+          const timeRange = event.data.endTime
+            ? `${event.data.startTime} – ${event.data.endTime}`
+            : event.data.startTime;
+          const eventHref = event.data.featured
+            ? `/events/${event.id.replace(/\.mdx?$/, '')}/`
+            : '/events/';
+          return (
+            <a href={eventHref} class="preview-row">
+              <div class="preview-meta">
+                <Badge label={event.data.type} />
+                <span class="preview-date">{formattedDate}</span>
+              </div>
+              <h4 class="preview-title">{event.data.title}</h4>
+              <p class="preview-excerpt">{timeRange} · {event.data.location}</p>
+            </a>
+          );
+        }) : (
+          <p class="empty-state">No upcoming events at this time.</p>
+        )}
+      </div>
+      <a href="/events/" class="view-all-link">View all events →</a>
+    </section>
+  </div>
 </BaseLayout>
 
 <style>
 .hero {
-  margin: 32px 0;
-  padding: 48px 40px;
-  background: linear-gradient(135deg, #1a4d2e 0%, #2a7a4a 100%);
-  border-radius: 16px;
-  color: #fff;
+  margin: 24px 0 36px;
+  text-align: center;
 }
-.hero h2 {
-  margin: 0 0 12px;
-  font-size: 32px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #fff;
+.hero-title-block {
+  margin: 0 auto 20px;
+  max-width: 640px;
 }
-.hero p {
+.hero-eyebrow {
+  display: block;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+.hero-title {
   margin: 0;
-  font-size: 17px;
-  opacity: 0.85;
-  max-width: 520px;
-  line-height: 1.6;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 32px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  line-height: 1.1;
 }
-.quick-links {
+.hero-tagline {
+  margin: 8px 0 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+.hero-figure {
+  margin: 0;
+  padding: 0;
+}
+.hero-figure img {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.previews-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
   margin-bottom: 40px;
 }
 .section-heading {
@@ -84,13 +142,13 @@ const quickLinks = [
   margin: 0 0 16px;
   color: #1a4d2e;
 }
-.news-preview-list {
+.preview-list {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
   border-top: 1px solid #f0efe9;
 }
-.news-preview-row {
+.preview-row {
   background: #fff;
   padding: 20px 24px;
   border-bottom: 1px solid #f0efe9;
@@ -98,10 +156,10 @@ const quickLinks = [
   text-decoration: none;
   color: inherit;
 }
-.news-preview-row:hover {
+.preview-row:hover {
   background: #fdfcf9;
 }
-.news-preview-meta {
+.preview-meta {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -113,18 +171,27 @@ const quickLinks = [
   color: #888780;
   font-family: 'DM Sans', sans-serif;
 }
-.news-preview-title {
+.preview-title {
   margin: 0 0 4px;
   font-size: 16px;
   font-weight: 500;
   color: #2C2C2A;
 }
-.news-preview-excerpt {
+.preview-excerpt {
   margin: 0;
   font-size: 14px;
   color: #5F5E5A;
   line-height: 1.5;
   font-family: 'DM Sans', sans-serif;
+}
+.empty-state {
+  padding: 20px 24px;
+  background: #fff;
+  border-bottom: 1px solid #f0efe9;
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #888780;
 }
 .view-all-link {
   font-family: 'DM Sans', sans-serif;
@@ -138,14 +205,16 @@ const quickLinks = [
 }
 
 @media (max-width: 640px) {
-  .hero {
-    padding: 32px 24px;
+  .hero-figure img {
+    height: 180px;
   }
-  .hero h2 {
-    font-size: 24px;
+  .hero-title {
+    font-size: 22px;
+    letter-spacing: 0.16em;
   }
-  .quick-links {
+  .previews-grid {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 }
 </style>

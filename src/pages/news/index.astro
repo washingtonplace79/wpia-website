@@ -19,7 +19,7 @@ const sortedNews = allNews.sort((a, b) => b.data.date.valueOf() - a.data.date.va
         author={post.data.author}
         tag={post.data.tag}
         excerpt={post.data.excerpt}
-        slug={post.id}
+        slug={post.id.replace(/\.mdx?$/, '')}
       />
     ))}
   </div>

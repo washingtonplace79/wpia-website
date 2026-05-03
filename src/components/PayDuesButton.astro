@@ -1,0 +1,41 @@
+---
+interface Props {
+  label?: string;
+}
+const { label = 'Pay your dues' } = Astro.props;
+---
+<a
+  href="https://www.paypal.com/ncp/payment/L6Z7PTD3LWEKG"
+  class="pay-dues-btn"
+  target="_blank"
+  rel="noopener"
+>
+  {label}
+  <span class="arrow" aria-hidden="true">→</span>
+</a>
+
+<style>
+.pay-dues-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a4d2e;
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.pay-dues-btn:hover {
+  background: #2a7a4a;
+}
+.arrow {
+  transition: transform 0.15s;
+}
+.pay-dues-btn:hover .arrow {
+  transform: translateX(2px);
+}
+</style>

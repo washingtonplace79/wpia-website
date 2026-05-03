@@ -33,7 +33,7 @@ const past = allEvents
           location={event.data.location}
           type={event.data.type}
           featured={event.data.featured}
-          slug={event.id}
+          slug={event.id.replace(/\.mdx?$/, '')}
         />
       ))}
     </div>
@@ -54,7 +54,7 @@ const past = allEvents
             location={event.data.location}
             type={event.data.type}
             featured={event.data.featured}
-            slug={event.id}
+            slug={event.id.replace(/\.mdx?$/, '')}
           />
         ))}
       </div>
