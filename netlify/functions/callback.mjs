@@ -52,13 +52,12 @@ function renderResult(payload, status) {
 <html><body>
 <script>
   (function () {
-    function send(target) {
-      target.postMessage(${JSON.stringify(message)}, "*");
+    function receiveMessage(e) {
+      if (e.data !== "authorizing:github") return;
+      window.opener.postMessage(${JSON.stringify(message)}, e.origin);
     }
-    window.addEventListener("message", function (e) {
-      if (e.data === "authorizing:github" && e.source) send(e.source);
-    }, false);
-    if (window.opener) send(window.opener);
+    window.addEventListener("message", receiveMessage, false);
+    if (window.opener) window.opener.postMessage("authorizing:github", "*");
   })();
 </script>
 <p>${success ? "Login complete. You can close this window." : "Login failed."}</p>
