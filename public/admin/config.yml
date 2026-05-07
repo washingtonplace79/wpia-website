@@ -2,6 +2,7 @@ backend:
   name: github
   repo: washingtonplace79/wpia-website
   branch: main
+  base_url: https://washingtonplace.org
   auth_endpoint: auth
 
 media_folder: public/uploads
