@@ -1,0 +1,41 @@
+name: Sync staging with main
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: staging-main
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into staging (or create staging)
+        run: |
+          if git ls-remote --exit-code --heads origin staging >/dev/null 2>&1; then
+            git fetch origin staging
+            git checkout -B staging origin/staging
+            if git merge-base --is-ancestor origin/main HEAD; then
+              echo "staging already contains main; nothing to do"
+              exit 0
+            fi
+            git merge --no-edit origin/main
+            git push origin staging
+          else
+            echo "staging branch missing — creating from main"
+            git checkout -b staging
+            git push -u origin staging
+          fi

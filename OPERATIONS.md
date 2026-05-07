@@ -14,12 +14,13 @@ This guide covers everything needed to deploy the site, connect it to Netlify, m
 6. [Update astro.config.mjs with your live URL](#6-update-astroconfigmjs-with-your-live-url)
 7. [Invite board members to the CMS](#7-invite-board-members-to-the-cms)
 8. [Logging in to the CMS](#8-logging-in-to-the-cms)
-9. [Managing content](#9-managing-content)
-10. [Managing document files (PDF uploads)](#10-managing-document-files-pdf-uploads)
-11. [Viewing contact form submissions](#11-viewing-contact-form-submissions)
-12. [Adding or removing board members](#12-adding-or-removing-board-members)
-13. [Routine maintenance](#13-routine-maintenance)
-14. [Troubleshooting](#14-troubleshooting)
+9. [Staging and releasing changes](#9-staging-and-releasing-changes)
+10. [Managing content](#10-managing-content)
+11. [Managing document files (PDF uploads)](#11-managing-document-files-pdf-uploads)
+12. [Viewing contact form submissions](#12-viewing-contact-form-submissions)
+13. [Adding or removing board members](#13-adding-or-removing-board-members)
+14. [Routine maintenance](#14-routine-maintenance)
+15. [Troubleshooting](#15-troubleshooting)
 
 ---
 
@@ -212,7 +213,49 @@ Passwords are managed by GitHub, not by this site. If a board member forgets the
 
 ---
 
-## 9. Managing content
+## 9. Staging and releasing changes
+
+Netlify charges 15 credits for each production deploy (free tier = 300 credits/month) but **deploy previews are free**. To avoid burning credits on every CMS save, this site uses a two-branch workflow:
+
+- **`staging` branch** — where routine CMS edits land. Netlify builds a free preview.
+- **`main` branch** — what the public sees. Pushing here costs 15 credits.
+
+### Two admin URLs
+
+| URL | Writes to | When to use | Cost per save |
+|---|---|---|---|
+| `https://washingtonplace.org/admin/` | `staging` | Routine edits, drafts, anything not urgent | Free |
+| `https://washingtonplace.org/admin-publish/` | `main` | Urgent posts that must go live immediately | 15 credits |
+
+The two pages look identical except for a colored banner at the top: **green = staging**, **red = LIVE**. Both use the same GitHub login.
+
+### Where to preview staging edits
+
+When you save through `/admin/`, your changes appear on the staging deploy URL within ~60 seconds. The URL is in the Netlify dashboard under **Deploys** — anything tagged "Branch: staging" with a `staging--your-site.netlify.app` URL. Bookmark this URL.
+
+### Releasing staging to production
+
+When you're happy with what's on staging and want it live:
+
+1. Go to <https://github.com/washingtonplace79/wpia-website/actions/workflows/release.yml>.
+2. Click **Run workflow** → leave the branch as `main` → click the green **Run workflow** button.
+3. The action merges `staging` into `main`. Netlify rebuilds production within ~60 seconds (one 15-credit deploy).
+
+If there's nothing new on staging, the action exits without doing anything (no credits spent).
+
+### What if someone uses `/admin-publish/`?
+
+That goes straight to `main` and triggers a production deploy. The `Sync staging with main` action (in `.github/workflows/sync-staging.yml`) automatically merges those changes back into staging on every push to main, so the two branches stay in sync.
+
+### One-time setup (already done — for reference)
+
+- `staging` branch exists on GitHub
+- Netlify has **Branch deploys** enabled for `staging` (Project configuration → Build & deploy → Continuous deployment → Branches and deploy contexts → "Let me add individual branches" → add `staging`)
+- GitHub Actions are enabled on the repo
+
+---
+
+## 10. Managing content
 
 All content editing happens through the CMS at `/admin/`. No code knowledge is needed.
 
@@ -266,7 +309,7 @@ See the next section — document files require an upload step.
 
 ---
 
-## 10. Managing document files (PDF uploads)
+## 11. Managing document files (PDF uploads)
 
 Because Netlify's free tier stores files in the GitHub repo, PDF files are uploaded through the CMS media library and committed to `public/uploads/` in the repo.
 
@@ -290,7 +333,7 @@ Netlify's free tier has a 100 MB repository size limit. For a neighborhood assoc
 
 ---
 
-## 11. Viewing contact form submissions
+## 12. Viewing contact form submissions
 
 The contact form on the Contact page sends submissions to Netlify Forms — no email server or third-party service required.
 
@@ -312,7 +355,7 @@ From then on, every form submission sends an email to that address immediately.
 
 ---
 
-## 12. Adding or removing board members
+## 13. Adding or removing board members
 
 ### Adding a board member (contact page listing)
 
@@ -342,7 +385,7 @@ They immediately lose write access to the repository, which means the CMS will r
 
 ---
 
-## 13. Routine maintenance
+## 14. Routine maintenance
 
 ### When Astro or other packages need updating
 
@@ -362,7 +405,7 @@ Then test locally (`npm run dev`), and push to GitHub. Netlify will deploy the u
 
 ---
 
-## 14. Troubleshooting
+## 15. Troubleshooting
 
 ### The site didn't update after I published something
 
