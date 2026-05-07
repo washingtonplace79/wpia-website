@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="robots" content="noindex" />
+  <title>Forms</title>
+</head>
+<body>
+  <!--
+    This file exists so Netlify's build-time form detector reliably picks up
+    the contact form. The real form on /contact/ handles UX; this decoy just
+    has to share the same name and field set so Netlify provisions the
+    submission endpoint. Do not link to or remove this file.
+  -->
+  <form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="text" name="name" />
+    <input type="email" name="email" />
+    <input type="text" name="subject" />
+    <textarea name="message"></textarea>
+    <input name="bot-field" />
+  </form>
+</body>
+</html>
