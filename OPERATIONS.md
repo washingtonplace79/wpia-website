@@ -9,7 +9,7 @@ This guide covers everything needed to deploy the site, connect it to Netlify, m
 1. [Prerequisites](#1-prerequisites)
 2. [Push the project to GitHub](#2-push-the-project-to-github)
 3. [Connect to Netlify and deploy](#3-connect-to-netlify-and-deploy)
-4. [Enable Netlify Identity and Git Gateway](#4-enable-netlify-identity-and-git-gateway)
+4. [Set up GitHub OAuth for the CMS](#4-set-up-github-oauth-for-the-cms)
 5. [Set a custom domain](#5-set-a-custom-domain)
 6. [Update astro.config.mjs with your live URL](#6-update-astroconfigmjs-with-your-live-url)
 7. [Invite board members to the CMS](#7-invite-board-members-to-the-cms)
@@ -75,26 +75,52 @@ Netlify will install dependencies and build the site. This takes about 60–90 s
 
 ---
 
-## 4. Enable Netlify Identity and Git Gateway
+## 4. Set up GitHub OAuth for the CMS
 
-This is required for the CMS login to work.
+> **Why this section changed.** The original plan used Netlify Identity + Git Gateway, which Netlify put into maintenance mode in September 2024 and no longer offers on new projects. Instead, the CMS now authenticates board members directly through GitHub. This means each editor needs a GitHub account and must be added as a collaborator on the repo (covered in Section 7). The CMS uses a small OAuth helper bundled with this project (in `netlify/functions/`) to complete GitHub login.
 
-### Enable Netlify Identity
+You'll do three things: create a GitHub OAuth App, add its credentials to Netlify as environment variables, and redeploy.
 
-1. In your Netlify dashboard, open your site.
-2. Go to **Site configuration** → **Identity** (in the left sidebar).
-3. Click **Enable Identity**.
-4. Under **Registration**, set it to **Invite only**. This means only people you invite can create an account — important for a private board CMS.
-5. Under **External providers**, you can optionally enable Google login for convenience.
+### 4a. Create a GitHub OAuth App
 
-### Enable Git Gateway
+1. Sign in to GitHub as the account that owns the `wpia-website` repo (or an org owner, if the repo lives in an organization).
+2. Go to **github.com → Settings → Developer settings → OAuth Apps → New OAuth App**.
+   - Direct link: <https://github.com/settings/applications/new>
+3. Fill in:
+   - **Application name**: `WPIA Website CMS`
+   - **Homepage URL**: your live site URL, e.g. `https://washingtonplace.org`
+   - **Authorization callback URL**: your live site URL **+ `/auth/callback`**, e.g. `https://washingtonplace.org/auth/callback`
+   - Leave "Enable Device Flow" unchecked.
+4. Click **Register application**.
+5. On the next screen:
+   - Copy the **Client ID** (visible immediately).
+   - Click **Generate a new client secret**, then copy the **Client Secret** somewhere safe — GitHub only shows it once.
 
-Git Gateway is what allows the CMS to commit changes to your GitHub repo on behalf of logged-in users.
+> **If you haven't set up a custom domain yet** and are still on the `*.netlify.app` URL, use that URL in steps 3 and 4 (e.g. `https://sparkly-fox-123456.netlify.app/auth/callback`). Once you switch to the custom domain, come back here and edit the OAuth App's Homepage and Authorization callback URLs to match.
 
-1. Still in **Site configuration → Identity**, scroll down to **Services**.
-2. Click **Enable Git Gateway**.
+### 4b. Add the credentials to Netlify
 
-That's it. The CMS is now connected to your repo.
+1. In the Netlify dashboard, open the project → **Project configuration → Environment variables**.
+2. Click **Add a variable** → **Add a single variable** and create:
+   - **Key**: `OAUTH_CLIENT_ID`
+   - **Value**: the Client ID you copied
+   - **Scopes**: leave defaults (all scopes)
+3. Repeat with:
+   - **Key**: `OAUTH_CLIENT_SECRET`
+   - **Value**: the Client Secret you copied
+4. Click **Save**.
+
+### 4c. Trigger a redeploy
+
+Environment variables only apply to *new* builds, so you need a fresh deploy:
+
+1. Go to **Deploys** in the left sidebar.
+2. Click **Trigger deploy** → **Deploy project**.
+3. Wait ~60–90 seconds for it to finish.
+
+The CMS is now wired to GitHub. Section 7 covers giving board members access; Section 8 covers logging in.
+
+> **Sanity check.** After the deploy finishes, open `https://your-site/auth` in a browser. It should bounce you straight to GitHub's authorization screen. If you instead see a 500 error or a Netlify "Page not found", the env vars probably didn't take — re-check Section 4b and trigger another deploy.
 
 ---
 
@@ -102,7 +128,7 @@ That's it. The CMS is now connected to your repo.
 
 > Skip this section if you're keeping the `.netlify.app` URL for now.
 
-1. In the Netlify dashboard, go to **Site configuration → Domain management**.
+1. In the Netlify dashboard, go to **Project configuration → Domain management**.
 2. Click **Add a domain** and enter your domain (e.g. `washingtonplace.org`).
 3. Netlify will give you nameserver addresses (e.g. `dns1.p01.nsone.net`).
 4. Log in to wherever you registered the domain and update the nameservers to Netlify's values.
@@ -137,15 +163,27 @@ git push
 
 ## 7. Invite board members to the CMS
 
-Each board member who needs to edit the site needs a Netlify Identity account.
+Each board member who edits the site needs a **GitHub account** and must be added as a **collaborator** on the `wpia-website` repository. After that, they can log in to the CMS using GitHub.
 
-1. In the Netlify dashboard, go to **Site configuration → Identity**.
-2. Click **Invite users**.
-3. Enter the board member's email address and click **Send**.
-4. They will receive an email from Netlify with a link to set their password.
-5. They click the link, set a password, and they're ready to log in.
+### 7a. Make sure they have a GitHub account
 
-> **One invitation per person.** Each board member needs their own email address. Do not share accounts.
+If a board member doesn't already have one:
+
+1. Send them to <https://github.com/signup>.
+2. Have them sign up with their email address. Free accounts are fine.
+3. Have them confirm the email and complete the basic setup (no need to set up SSH keys, configure 2FA right away, or anything else — just a working account).
+4. Ask them to send you their **GitHub username** (not their email).
+
+### 7b. Add them as a collaborator
+
+1. Go to <https://github.com/washingtonplace79/wpia-website/settings/access>.
+2. Click **Add people**.
+3. Type the board member's GitHub username (or email if username unknown) and select them from the dropdown.
+4. Choose the **Write** role. (Read is too restrictive — the CMS needs to push commits. Maintain/Admin gives more than they need.)
+5. Click **Add to repository**.
+6. GitHub will email them an invitation. They must click **Accept invitation** in that email (or visit the repo) before they can log in to the CMS.
+
+> **One person per GitHub account.** Each board member needs their own GitHub account. Do not share accounts — every CMS edit shows up as a commit by the editing user, which is useful for traceability.
 
 ---
 
@@ -162,14 +200,15 @@ For example: `https://washingtonplace.org/admin/`
 ### First login
 
 1. Go to `/admin/` on the live site.
-2. Click **Login with Netlify Identity**.
-3. Enter the email address that received the invitation.
-4. Enter the password that was set when accepting the invitation.
-5. The CMS dashboard opens, showing the four content sections: News, Events, Documents, Board Members.
+2. Click **Login with GitHub**.
+3. A popup opens at github.com asking them to sign in (if they aren't already) and authorize the **WPIA Website CMS** application. Click **Authorize**.
+4. The popup closes and the CMS dashboard opens, showing the four content sections: News, Events, Documents, Board Members.
+
+> The "Authorize" prompt only appears the first time. After that, GitHub remembers the authorization and the popup will close immediately on subsequent logins.
 
 ### Forgotten password
 
-Board members can reset their own password by clicking **Forgot password?** on the login screen. A reset email will be sent to their address.
+Passwords are managed by GitHub, not by this site. If a board member forgets their GitHub password, they reset it at <https://github.com/password_reset>. Once they're back into GitHub, they can log in to the CMS again — no action needed on this site.
 
 ---
 
@@ -264,7 +303,7 @@ The contact form on the Contact page sends submissions to Netlify Forms — no e
 
 To receive an email each time someone submits the form:
 
-1. In the Netlify dashboard, go to **Site configuration → Forms → Form notifications**.
+1. In the Netlify dashboard, go to **Project configuration → Forms → Form notifications**.
 2. Click **Add notification** → **Email notification**.
 3. Enter the board's email address.
 4. Click **Save**.
@@ -295,11 +334,11 @@ From then on, every form submission sends an email to that address immediately.
 
 Removing someone from the Board Members content collection only removes them from the Contact page — it does **not** revoke their CMS login. To do that:
 
-1. In the Netlify dashboard, go to **Site configuration → Identity**.
-2. Find the person's email under **Users**.
-3. Click their name → **Delete user**.
+1. Go to <https://github.com/washingtonplace79/wpia-website/settings/access>.
+2. Find the person in the collaborators list.
+3. Click the **⋯** menu next to their name → **Remove access**.
 
-They will immediately lose the ability to log in to `/admin/`.
+They immediately lose write access to the repository, which means the CMS will refuse to save their changes the next time they try. They can still *open* `/admin/` and log in with GitHub, but any save attempt will fail. (Their existing GitHub account is unaffected — only their access to this specific repo is removed.)
 
 ---
 
@@ -333,15 +372,17 @@ Then test locally (`npm run dev`), and push to GitHub. Netlify will deploy the u
 
 ### I can't log in to /admin/
 
-- Make sure you accepted the invitation email and set your password before trying to log in.
+- Make sure you accepted the GitHub collaborator invitation email before trying to log in. Pending invitations are listed at <https://github.com/notifications> or in the email itself.
 - Try clearing browser cookies and cache, then visit `/admin/` again.
-- Check that Netlify Identity and Git Gateway are both enabled (see Section 4).
-- If the login popup doesn't appear, the Netlify Identity widget may be blocked by a browser extension. Try in a private/incognito window.
+- If the login popup is blocked, allow popups for the site and try again.
+- Open `https://your-site/auth` directly in a new tab. It should bounce to GitHub. If it shows a 500 error, the `OAUTH_CLIENT_ID` / `OAUTH_CLIENT_SECRET` env vars are missing or were added after the last deploy — see Section 4b/4c.
+- If GitHub shows "redirect_uri mismatch", the OAuth App's **Authorization callback URL** doesn't match the site you're logging in from. Edit it at <https://github.com/settings/developers> to be exactly `https://YOUR-DOMAIN/auth/callback`.
 
 ### A board member didn't receive their invitation email
 
-- Ask them to check their spam/junk folder — Netlify invitation emails sometimes land there.
-- In the Netlify dashboard → Identity → Users, find the pending invitation and click **Resend**.
+- Ask them to check their spam/junk folder.
+- They can also accept directly: have them sign in to GitHub and open <https://github.com/washingtonplace79/wpia-website/invitations>.
+- If the invitation expired (after 7 days), re-invite them at the repo's **Settings → Collaborators** page.
 
 ### A file uploaded to the Documents section is broken/not downloadable
 
@@ -351,8 +392,9 @@ Then test locally (`npm run dev`), and push to GitHub. Netlify will deploy the u
 ### The CMS shows "Failed to persist entry"
 
 This means the CMS could not commit the change to GitHub. Common causes:
-- Git Gateway is not enabled — check Section 4.
-- The user's Netlify Identity session has expired — log out and log back in.
+- The user is not a collaborator on the repo (or their invitation is still pending) — check Section 7.
+- The user's GitHub session expired — log out of the CMS, log back in, retry.
+- The user's collaborator role is **Read** instead of **Write** — bump it to Write at the repo's Settings → Collaborators page.
 - A GitHub API rate limit was hit (rare) — wait a few minutes and try again.
 
 ### The build fails with a Zod validation error
@@ -367,4 +409,4 @@ The Netlify deploy error log will show exactly which file and field caused the p
 
 ---
 
-*Last updated: April 2026. For technical changes to the site code, contact the person who built the site.*
+*Last updated: May 2026. For technical changes to the site code, contact the person who built the site.*

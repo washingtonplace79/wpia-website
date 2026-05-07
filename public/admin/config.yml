@@ -1,6 +1,8 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: washingtonplace79/wpia-website
   branch: main
+  auth_endpoint: auth
 
 media_folder: public/uploads
 public_folder: /uploads
