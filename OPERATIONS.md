@@ -231,7 +231,13 @@ The two pages look identical except for a colored banner at the top: **green = s
 
 ### Where to preview staging edits
 
-When you save through `/admin/`, your changes appear on the staging deploy URL within ~60 seconds. The URL is in the Netlify dashboard under **Deploys** — anything tagged "Branch: staging" with a `staging--your-site.netlify.app` URL. Bookmark this URL.
+When you save through `/admin/`, your changes appear on the **staging deploy URL** within ~60 seconds:
+
+> **<https://staging--wpia.netlify.app/>**
+
+Bookmark this. Note the **double dash** (`--`) between the branch name and the site name — that's Netlify's separator (single dashes are valid in both branch and site names, so they'd be ambiguous). The general pattern for any branch is `https://<branch>--wpia.netlify.app/`.
+
+The same URL is also discoverable in the Netlify dashboard under **Deploys** — any row tagged "Branch: staging" links to it.
 
 ### Releasing staging to production
 
