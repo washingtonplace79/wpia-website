@@ -22,7 +22,7 @@ const href = featured && slug ? `/events/${slug}/` : null;
 const Tag = href ? 'a' : 'div';
 ---
 
-<Tag href={href || undefined} class:list={['event-card', { 'event-card--link': !!href }]}>
+<Tag href={href || undefined} data-date={date.toISOString().slice(0, 10)} class:list={['event-card', { 'event-card--link': !!href }]}>
   <div class="event-date-block" aria-hidden="true">
     <div class="event-day">{day}</div>
     <div class="event-month">{month}</div>

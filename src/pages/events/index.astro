@@ -22,9 +22,28 @@ const past = allEvents
     <h2>Upcoming events</h2>
   </div>
 
-  {upcoming.length > 0 ? (
-    <div class="event-list">
-      {upcoming.map(event => (
+  <div class="event-list" id="upcoming-list" hidden={upcoming.length === 0}>
+    {upcoming.map(event => (
+      <EventCard
+        title={event.data.title}
+        date={event.data.date}
+        startTime={event.data.startTime}
+        endTime={event.data.endTime}
+        location={event.data.location}
+        type={event.data.type}
+        featured={event.data.featured}
+        slug={event.id.replace(/\.mdx?$/, '')}
+      />
+    ))}
+  </div>
+  <p class="empty-state" id="upcoming-empty" hidden={upcoming.length > 0}>
+    No upcoming events at this time. Check back soon!
+  </p>
+
+  <section class="past-section" id="past-section" hidden={past.length === 0}>
+    <h3>Past events</h3>
+    <div class="event-list event-list--past" id="past-list">
+      {past.map(event => (
         <EventCard
           title={event.data.title}
           date={event.data.date}
@@ -37,29 +56,44 @@ const past = allEvents
         />
       ))}
     </div>
-  ) : (
-    <p class="empty-state">No upcoming events at this time. Check back soon!</p>
-  )}
+  </section>
 
-  {past.length > 0 && (
-    <section class="past-section">
-      <h3>Past events</h3>
-      <div class="event-list event-list--past">
-        {past.map(event => (
-          <EventCard
-            title={event.data.title}
-            date={event.data.date}
-            startTime={event.data.startTime}
-            endTime={event.data.endTime}
-            location={event.data.location}
-            type={event.data.type}
-            featured={event.data.featured}
-            slug={event.id.replace(/\.mdx?$/, '')}
-          />
-        ))}
-      </div>
-    </section>
-  )}
+  {/*
+    The site is statically built, so the server-side split above is frozen at
+    the last deploy date. This corrects only the stragglers: any event that has
+    lapsed since the build is moved from upcoming → past in the browser, using
+    the visitor's real date. UTC is used to match the server's comparison.
+  */}
+  <script is:inline>
+    (function () {
+      var todayUTC = new Date().toISOString().slice(0, 10);
+      var upcomingList = document.getElementById('upcoming-list');
+      var upcomingEmpty = document.getElementById('upcoming-empty');
+      var pastSection = document.getElementById('past-section');
+      var pastList = document.getElementById('past-list');
+      if (!upcomingList || !pastList) return;
+
+      // Lapsed events are the leading (oldest) entries of the ascending
+      // upcoming list. Iterate forward and prepend each to the descending
+      // past list so the most recently lapsed ends up on top.
+      var cards = Array.prototype.slice.call(upcomingList.children);
+      var moved = false;
+      for (var i = 0; i < cards.length; i++) {
+        var d = cards[i].getAttribute('data-date');
+        if (d && d < todayUTC) {
+          pastList.insertBefore(cards[i], pastList.firstChild);
+          moved = true;
+        }
+      }
+
+      if (moved) {
+        var hasUpcoming = upcomingList.children.length > 0;
+        upcomingList.hidden = !hasUpcoming;
+        if (upcomingEmpty) upcomingEmpty.hidden = hasUpcoming;
+        if (pastSection) pastSection.hidden = false;
+      }
+    })();
+  </script>
 </BaseLayout>
 
 <style>
