@@ -11,10 +11,14 @@ const recentNews = allNews
 const today = new Date();
 today.setUTCHours(0, 0, 0, 0);
 const allEvents = await getCollection('events');
+// Render a small buffer beyond the 3 shown so the client-side correction
+// (see script below) can backfill if a leading event has lapsed since the
+// static build, without an extra Netlify rebuild.
+const PREVIEW_SHOWN = 3;
 const upcomingEvents = allEvents
   .filter(e => e.data.date >= today)
   .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf())
-  .slice(0, 3);
+  .slice(0, PREVIEW_SHOWN + 3);
 ---
 
 <BaseLayout title="Washington Place Improvement Association">
@@ -54,8 +58,8 @@ const upcomingEvents = allEvents
 
     <section class="preview-col">
       <h3 class="section-heading">Upcoming events</h3>
-      <div class="preview-list">
-        {upcomingEvents.length > 0 ? upcomingEvents.map(event => {
+      <div class="preview-list" id="events-preview">
+        {upcomingEvents.map((event, i) => {
           const formattedDate = event.data.date.toLocaleDateString('en-US', {
             weekday: 'short', month: 'long', day: 'numeric', timeZone: 'UTC',
           });
@@ -66,7 +70,12 @@ const upcomingEvents = allEvents
             ? `/events/${event.id.replace(/\.mdx?$/, '')}/`
             : '/events/';
           return (
-            <a href={eventHref} class="preview-row">
+            <a
+              href={eventHref}
+              class="preview-row"
+              data-date={event.data.date.toISOString().slice(0, 10)}
+              hidden={i >= PREVIEW_SHOWN}
+            >
               <div class="preview-meta">
                 <Badge label={event.data.type} />
                 <span class="preview-date">{formattedDate}</span>
@@ -75,10 +84,38 @@ const upcomingEvents = allEvents
               <p class="preview-excerpt">{timeRange} · {event.data.location}</p>
             </a>
           );
-        }) : (
-          <p class="empty-state">No upcoming events at this time.</p>
-        )}
+        })}
+        <p class="empty-state" id="events-preview-empty" hidden={upcomingEvents.length > 0}>
+          No upcoming events at this time.
+        </p>
       </div>
+
+      {/*
+        Static build: the upcoming filter above is frozen at deploy time. Drop
+        any rows that have lapsed since, then show the first PREVIEW_SHOWN of
+        what remains (the buffer rendered above covers the backfill). UTC to
+        match the server-side comparison.
+      */}
+      <script is:inline define:vars={{ PREVIEW_SHOWN }}>
+        (function () {
+          var todayUTC = new Date().toISOString().slice(0, 10);
+          var list = document.getElementById('events-preview');
+          var empty = document.getElementById('events-preview-empty');
+          if (!list) return;
+          var rows = Array.prototype.slice.call(
+            list.querySelectorAll('.preview-row')
+          );
+          var shown = 0;
+          for (var i = 0; i < rows.length; i++) {
+            var d = rows[i].getAttribute('data-date');
+            var lapsed = d && d < todayUTC;
+            var show = !lapsed && shown < PREVIEW_SHOWN;
+            rows[i].hidden = !show;
+            if (show) shown++;
+          }
+          if (empty) empty.hidden = shown > 0;
+        })();
+      </script>
       <a href="/events/" class="view-all-link">View all events →</a>
     </section>
   </div>
