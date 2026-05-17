@@ -23,14 +23,14 @@ For developers working on the site code. For day-to-day site operations (publish
 
 ## 1. Prerequisites
 
-- **Node.js 20.x or newer** — install from [nodejs.org](https://nodejs.org) or via a version manager (nvm, fnm, volta).
+- **Node.js 22.x (current LTS)** — install from [nodejs.org](https://nodejs.org) or via a version manager (nvm, fnm, volta). The repo has a `.nvmrc` pinned to `22`; `nvm use` picks it up. This matches the Netlify build (`NODE_VERSION` in `netlify.toml`).
 - **Git** — install from [git-scm.com](https://git-scm.com).
 - **A code editor** — VS Code is recommended (see Section 10).
 
 Check versions:
 
 ```bash
-node --version   # should print v20.x.x or higher
+node --version   # should print v22.x.x
 npm --version
 git --version
 ```
@@ -349,7 +349,7 @@ This project intentionally has no Prettier or ESLint config, to keep the depende
 
 ### Browser dev tools
 
-For client-side issues (the document filter script, the Netlify Identity widget, form submission), open the browser console (F12) and check for errors.
+For client-side issues (the document filter script, the events date-rollover scripts on `/` and `/events/`, form submission), open the browser console (F12) and check for errors.
 
 ### Astro errors
 
@@ -405,8 +405,18 @@ npm run dev -- --port 4322
 ### Build succeeds locally but fails on Netlify
 
 - Make sure `package-lock.json` is committed.
-- Check the Node version: Netlify uses what's set in `netlify.toml` (`NODE_VERSION = "20"`). Update it if local development uses a different version.
+- Check the Node version: Netlify uses what's set in `netlify.toml` (`NODE_VERSION = "22"`, mirrored in `.nvmrc`). Bump both together when moving Node versions.
 - Some packages behave differently on Linux (Netlify's build env) vs macOS/Windows. Errors in the Netlify deploy log will name the file.
+
+### An event in the past still shows under "Upcoming"
+
+Expected, and self-correcting. The site is statically built, so the
+server-side upcoming/past split in `src/pages/events/index.astro` and the
+homepage preview is frozen at the last deploy's date. Small inline scripts on
+both pages re-evaluate each event's `data-date` against the visitor's real
+date and move/hide stragglers in the browser — **these scripts are
+load-bearing; don't remove them as "unused JS."** A fresh deploy also clears
+the staleness server-side. Comparison is UTC, to match the build-time filter.
 
 ### CMS preview shows fields differently than the schema expects
 
