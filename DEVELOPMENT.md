@@ -300,6 +300,16 @@ Then open the URL it prints (usually http://localhost:4321/).
 
 > **Always run `npm run build` before pushing significant changes.** The production build is stricter than dev and catches issues like Zod validation failures and broken `getStaticPaths`.
 
+### Which branch to push to
+
+All work goes to **`staging`** (free Netlify preview at
+`https://staging--wpia.netlify.app/`); `main` is the paid live site, promoted
+only via the "Release staging to main" Action (see `OPERATIONS.md` §9).
+Complexity-gated: small/low-risk fixes commit directly to `staging`;
+non-trivial or risky changes go on a short-lived branch **off `staging`** →
+PR (free Deploy Preview) → merge back. Never branch off `main` or push it
+directly. `CLAUDE.md` has the condensed rules.
+
 ---
 
 ## 9. Testing the CMS locally

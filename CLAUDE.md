@@ -10,8 +10,16 @@ Guidance for Claude / agents working in this repo. For human dev setup see
   `https://staging--wpia.netlify.app/`.
 - **`main`** — the live public site. Every production deploy costs **15 Netlify
   credits** (free tier = 300/month).
-- **Make changes on `staging`.** Branch off it for non-trivial code and merge
-  back; small fixes may commit directly to `staging`.
+- **How work enters `staging` is complexity-gated:**
+  - *Small / low-risk* (copy, config bump, isolated fix) — **commit directly
+    to `staging`**. This lighter path is intentional; don't force PR ceremony
+    on trivial changes.
+  - *Non-trivial / risky* (logic, new pages, refactors) — short-lived feature
+    branch **off `staging`** → PR → merge back to `staging`. PRs get a **free
+    Netlify Deploy Preview** (no production credits), keeping WIP off the
+    content-bearing `staging` branch until it's reviewed.
+- **Branch off `staging`, never `main`** — `staging` carries unreleased
+  content/code; branching off `main` would miss it.
 - **Never commit or push `main` directly.** The only promotion path is the
   manual **"Release staging to main"** GitHub Action
   (`.github/workflows/release.yml`, `workflow_dispatch`). Releasing is a
