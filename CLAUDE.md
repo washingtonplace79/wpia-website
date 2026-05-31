@@ -20,12 +20,13 @@ Guidance for Claude / agents working in this repo. For human dev setup see
     content-bearing `staging` branch until it's reviewed.
 - **Branch off `staging`, never `main`** — `staging` carries unreleased
   content/code; branching off `main` would miss it.
-- **Never commit or push `main` directly.** The only promotion path is the
-  manual **"Release staging to main"** GitHub Action
-  (`.github/workflows/release.yml`, `workflow_dispatch`). Releasing is a
-  deliberate human decision — surface it to the user, don't trigger it.
+- **Never commit or push `main` directly.** The normal promotion path is the
+  `/publish/` page, which calls `netlify/functions/publish.mjs` to start the
+  **"Release staging to main"** GitHub Action. The action merges `staging` into
+  `main` if there is anything to release. Releasing is a deliberate human
+  decision — surface it to the user, don't trigger it.
 - **Never hand-merge `main` → `staging`.** `sync-staging.yml` does that
-  automatically after a release or an `/admin-publish/` CMS write.
+  automatically after a release or other direct `main` change.
 
 ## Static-build date gotcha (load-bearing scripts)
 

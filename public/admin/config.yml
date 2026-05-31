@@ -1,5 +1,4 @@
 # Staging admin: writes to the `staging` branch (preview deploys, free).
-# Keep in sync with public/admin-publish/config.yml — only `branch` differs.
 #backend:
 #  name: git-gateway
 #  repo: washingtonplace79/wpia-website

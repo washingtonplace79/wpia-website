@@ -314,7 +314,7 @@ directly. `CLAUDE.md` has the condensed rules.
 
 ## 9. Testing the CMS locally
 
-The Decap CMS dashboard at `/admin/` requires Netlify Identity, which only works on the deployed site. To test the CMS locally, use Decap's **local backend** mode:
+The deployed Decap CMS dashboard at `/admin/` uses DecapBridge auth. To test the CMS locally without DecapBridge, use Decap's **local backend** mode:
 
 1. In a separate terminal, run:
    ```bash

@@ -8,21 +8,52 @@
     <style>
       .env-banner {
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
         z-index: 99999;
-        padding: 6px 14px;
-        font: 600 13px/1.4 system-ui, -apple-system, sans-serif;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 8px 14px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgb(21 32 29 / 18%);
+        font: 650 13px/1.35 system-ui, -apple-system, sans-serif;
         text-align: center;
         background: #2a9d8f;
         color: #fff;
       }
-      body { padding-top: 28px; }
+      .env-banner a {
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .env-banner__links {
+        display: inline-flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px 12px;
+      }
+      body { padding-bottom: 58px; }
+      @media (min-width: 720px) {
+        .env-banner {
+          left: 50%;
+          width: min(760px, calc(100vw - 24px));
+          transform: translateX(-50%);
+        }
+      }
     </style>
   </head>
   <body>
-    <div class="env-banner">Staging — saved changes are previewed, not live. An admin must Release to publish.</div>
+    <div class="env-banner">
+      <span>Draft editor: CMS Publish saves to staging, not the live site.</span>
+      <span class="env-banner__links">
+        <a href="https://staging--wpia.netlify.app/" target="_blank" rel="noreferrer">Preview staging</a>
+        <a href="/publish/">Publish reviewed changes</a>
+      </span>
+    </div>
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   </body>
 </html>
