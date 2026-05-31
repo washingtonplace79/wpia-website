@@ -1,28 +1,49 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
-    <title>Content Manager (LIVE) · Washington Place</title>
+    <meta http-equiv="refresh" content="0; url=/publish/" />
+    <title>Publish Reviewed Changes · Washington Place</title>
     <style>
-      .env-banner {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 99999;
-        padding: 6px 14px;
-        font: 600 13px/1.4 system-ui, -apple-system, sans-serif;
-        text-align: center;
-        background: #d62828;
-        color: #fff;
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #f4f7f5;
+        color: #15201d;
+        font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
-      body { padding-top: 28px; }
+
+      main {
+        width: min(100% - 32px, 520px);
+        padding: 28px;
+        background: #fff;
+        border: 1px solid #d6ddd9;
+        border-radius: 8px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.5rem;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      a {
+        color: #1d6f66;
+        font-weight: 700;
+      }
     </style>
   </head>
   <body>
-    <div class="env-banner">LIVE — every save deploys to production immediately. Use /admin/ for routine edits.</div>
-    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <main>
+      <h1>Publish reviewed changes</h1>
+      <p>The direct live editor has been retired. Continue to <a href="/publish/">the publish page</a>.</p>
+    </main>
   </body>
 </html>

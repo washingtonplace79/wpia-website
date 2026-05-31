@@ -1,7 +1,7 @@
-# LIVE admin: writes directly to `main` (production deploy per save, 15 credits).
-# Keep in sync with public/admin/config.yml — only `branch` differs.
+# Legacy direct-live CMS config. /admin-publish/ now redirects to /publish/.
+# Keep only as a reference for emergency manual restoration.
 backend:
-  name: github
+  name: git-gateway
   repo: washingtonplace79/wpia-website
   branch: main
   base_url: https://washingtonplace.org

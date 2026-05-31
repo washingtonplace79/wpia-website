@@ -9,7 +9,7 @@ This guide covers everything needed to deploy the site, connect it to Netlify, m
 1. [Prerequisites](#1-prerequisites)
 2. [Push the project to GitHub](#2-push-the-project-to-github)
 3. [Connect to Netlify and deploy](#3-connect-to-netlify-and-deploy)
-4. [Set up GitHub OAuth for the CMS](#4-set-up-github-oauth-for-the-cms)
+4. [Set up DecapBridge for the CMS](#4-set-up-decapbridge-for-the-cms)
 5. [Set a custom domain](#5-set-a-custom-domain)
 6. [Update astro.config.mjs with your live URL](#6-update-astroconfigmjs-with-your-live-url)
 7. [Invite board members to the CMS](#7-invite-board-members-to-the-cms)
@@ -19,8 +19,9 @@ This guide covers everything needed to deploy the site, connect it to Netlify, m
 11. [Managing document files (PDF uploads)](#11-managing-document-files-pdf-uploads)
 12. [Viewing contact form submissions](#12-viewing-contact-form-submissions)
 13. [Adding or removing board members](#13-adding-or-removing-board-members)
-14. [Routine maintenance](#14-routine-maintenance)
-15. [Troubleshooting](#15-troubleshooting)
+14. [Maintaining environment variables](#14-maintaining-environment-variables)
+15. [Routine maintenance](#15-routine-maintenance)
+16. [Troubleshooting](#16-troubleshooting)
 
 ---
 
@@ -76,52 +77,51 @@ Netlify will install dependencies and build the site. This takes about 60–90 s
 
 ---
 
-## 4. Set up GitHub OAuth for the CMS
+## 4. Set up DecapBridge for the CMS
 
-> **Why this section changed.** The original plan used Netlify Identity + Git Gateway, which Netlify put into maintenance mode in September 2024 and no longer offers on new projects. Instead, the CMS now authenticates board members directly through GitHub. This means each editor needs a GitHub account and must be added as a collaborator on the repo (covered in Section 7). The CMS uses a small OAuth helper bundled with this project (in `netlify/functions/`) to complete GitHub login.
+The CMS uses DecapBridge PKCE auth for routine staging edits. Editors do not need GitHub accounts; DecapBridge manages invitations and the CMS commits changes to the `staging` branch through its Git Gateway.
 
-You'll do three things: create a GitHub OAuth App, add its credentials to Netlify as environment variables, and redeploy.
+### 4a. DecapBridge site settings
 
-### 4a. Create a GitHub OAuth App
+In DecapBridge, configure the site with:
 
-1. Sign in to GitHub as the account that owns the `wpia-website` repo (or an org owner, if the repo lives in an organization).
-2. Go to **github.com → Settings → Developer settings → OAuth Apps → New OAuth App**.
-   - Direct link: <https://github.com/settings/applications/new>
-3. Fill in:
-   - **Application name**: `WPIA Website CMS`
-   - **Homepage URL**: your live site URL, e.g. `https://washingtonplace.org`
-   - **Authorization callback URL**: your live site URL **+ `/auth/callback`**, e.g. `https://washingtonplace.org/auth/callback`
-   - Leave "Enable Device Flow" unchecked.
-4. Click **Register application**.
-5. On the next screen:
-   - Copy the **Client ID** (visible immediately).
-   - Click **Generate a new client secret**, then copy the **Client Secret** somewhere safe — GitHub only shows it once.
+- **Git provider**: GitHub
+- **Repository**: `washingtonplace79/wpia-website`
+- **CMS login URL**: `https://washingtonplace.org/admin/index.html`
+- **Git access token**: a fine-grained GitHub token with read/write access to repository contents
 
-> **If you haven't set up a custom domain yet** and are still on the `*.netlify.app` URL, use that URL in steps 3 and 4 (e.g. `https://sparkly-fox-123456.netlify.app/auth/callback`). Once you switch to the custom domain, come back here and edit the OAuth App's Homepage and Authorization callback URLs to match.
+The staging CMS config lives at `public/admin/config.yml`. It is already set to:
 
-### 4b. Add the credentials to Netlify
+- `branch: staging`
+- `base_url: https://auth.decapbridge.com`
+- `gateway_url: https://gateway.decapbridge.com`
 
-1. In the Netlify dashboard, open the project → **Project configuration → Environment variables**.
-2. Click **Add a variable** → **Add a single variable** and create:
-   - **Key**: `OAUTH_CLIENT_ID`
-   - **Value**: the Client ID you copied
-   - **Scopes**: leave defaults (all scopes)
-3. Repeat with:
-   - **Key**: `OAUTH_CLIENT_SECRET`
-   - **Value**: the Client Secret you copied
-4. Click **Save**.
+### 4b. Configure publishing
+
+Publishing reviewed staging changes uses the site-side publish page at:
+
+```
+https://washingtonplace.org/publish/
+```
+
+This page calls a Netlify Function that starts the existing `release.yml` GitHub workflow. Add these Netlify environment variables:
+
+- **`GITHUB_WORKFLOW_TOKEN`**: a fine-grained GitHub token for `washingtonplace79/wpia-website` with **Actions: Read and write**
+- **`PUBLISH_SECRET`**: a strong passcode shared only with people allowed to publish
+
+Optional environment variable:
+
+- **`PUBLISH_WORKFLOW_REF`**: defaults to `main`
 
 ### 4c. Trigger a redeploy
 
-Environment variables only apply to *new* builds, so you need a fresh deploy:
+Environment variables only apply to new builds/functions, so trigger a fresh deploy after adding them:
 
-1. Go to **Deploys** in the left sidebar.
+1. Go to **Deploys** in the Netlify dashboard.
 2. Click **Trigger deploy** → **Deploy project**.
 3. Wait ~60–90 seconds for it to finish.
 
-The CMS is now wired to GitHub. Section 7 covers giving board members access; Section 8 covers logging in.
-
-> **Sanity check.** After the deploy finishes, open `https://your-site/auth` in a browser. It should bounce you straight to GitHub's authorization screen. If you instead see a 500 error or a Netlify "Page not found", the env vars probably didn't take — re-check Section 4b and trigger another deploy.
+The CMS is now wired to DecapBridge for editing, and `/publish/` is wired for releasing reviewed staging changes to production.
 
 ---
 
@@ -164,27 +164,18 @@ git push
 
 ## 7. Invite board members to the CMS
 
-Each board member who edits the site needs a **GitHub account** and must be added as a **collaborator** on the `wpia-website` repository. After that, they can log in to the CMS using GitHub.
+Board member CMS access is managed in DecapBridge, not GitHub. Editors do not need repository access.
 
-### 7a. Make sure they have a GitHub account
+### 7a. Invite an editor
 
-If a board member doesn't already have one:
+1. Log in to DecapBridge.
+2. Open the `wpia-website` site.
+3. Invite the board member by email.
+4. Ask them to accept the invitation and choose their login method.
 
-1. Send them to <https://github.com/signup>.
-2. Have them sign up with their email address. Free accounts are fine.
-3. Have them confirm the email and complete the basic setup (no need to set up SSH keys, configure 2FA right away, or anything else — just a working account).
-4. Ask them to send you their **GitHub username** (not their email).
+### 7b. Choose who can publish
 
-### 7b. Add them as a collaborator
-
-1. Go to <https://github.com/washingtonplace79/wpia-website/settings/access>.
-2. Click **Add people**.
-3. Type the board member's GitHub username (or email if username unknown) and select them from the dropdown.
-4. Choose the **Write** role. (Read is too restrictive — the CMS needs to push commits. Maintain/Admin gives more than they need.)
-5. Click **Add to repository**.
-6. GitHub will email them an invitation. They must click **Accept invitation** in that email (or visit the repo) before they can log in to the CMS.
-
-> **One person per GitHub account.** Each board member needs their own GitHub account. Do not share accounts — every CMS edit shows up as a commit by the editing user, which is useful for traceability.
+Publishing is separate from editing. Only share the `/publish/` passcode with people who are allowed to release reviewed staging changes to the live site.
 
 ---
 
@@ -201,15 +192,15 @@ For example: `https://washingtonplace.org/admin/`
 ### First login
 
 1. Go to `/admin/` on the live site.
-2. Click **Login with GitHub**.
-3. A popup opens at github.com asking them to sign in (if they aren't already) and authorize the **WPIA Website CMS** application. Click **Authorize**.
-4. The popup closes and the CMS dashboard opens, showing the four content sections: News, Events, Documents, Board Members.
+2. Click the login button.
+3. Complete the DecapBridge login flow.
+4. The CMS dashboard opens, showing the four content sections: News, Events, Documents, Board Members.
 
-> The "Authorize" prompt only appears the first time. After that, GitHub remembers the authorization and the popup will close immediately on subsequent logins.
+DecapBridge manages passwords, invite status, and SSO login options.
 
 ### Forgotten password
 
-Passwords are managed by GitHub, not by this site. If a board member forgets their GitHub password, they reset it at <https://github.com/password_reset>. Once they're back into GitHub, they can log in to the CMS again — no action needed on this site.
+Passwords are managed by DecapBridge, not by this site. If a board member forgets their password, they use DecapBridge's reset flow from the CMS login screen.
 
 ---
 
@@ -220,14 +211,15 @@ Netlify charges 15 credits for each production deploy (free tier = 300 credits/m
 - **`staging` branch** — where routine CMS edits land. Netlify builds a free preview.
 - **`main` branch** — what the public sees. Pushing here costs 15 credits.
 
-### Two admin URLs
+### Edit, preview, publish
 
-| URL | Writes to | When to use | Cost per save |
-|---|---|---|---|
-| `https://washingtonplace.org/admin/` | `staging` | Routine edits, drafts, anything not urgent | Free |
-| `https://washingtonplace.org/admin-publish/` | `main` | Urgent posts that must go live immediately | 15 credits |
+| URL | Purpose | Cost |
+|---|---|---|
+| `https://washingtonplace.org/admin/` | Edit content on `staging` | Free branch deploy |
+| `https://staging--wpia.netlify.app/` | Preview staged changes | Free branch deploy |
+| `https://washingtonplace.org/publish/` | Release reviewed `staging` changes to `main` | One production deploy |
 
-The two pages look identical except for a colored banner at the top: **green = staging**, **red = LIVE**. Both use the same GitHub login.
+The old `/admin-publish/` direct-to-`main` path should be treated as a legacy emergency path only. Routine publishing should go through `/publish/` so content is reviewed on staging first.
 
 ### Where to preview staging edits
 
@@ -243,21 +235,23 @@ The same URL is also discoverable in the Netlify dashboard under **Deploys** —
 
 When you're happy with what's on staging and want it live:
 
-1. Go to <https://github.com/washingtonplace79/wpia-website/actions/workflows/release.yml>.
-2. Click **Run workflow** → leave the branch as `main` → click the green **Run workflow** button.
-3. The action merges `staging` into `main`. Netlify rebuilds production within ~60 seconds (one 15-credit deploy).
+1. Go to <https://washingtonplace.org/publish/>.
+2. Enter the publish passcode.
+3. Click **Publish to live site**.
+4. The publish function starts `.github/workflows/release.yml`. That workflow merges `staging` into `main` if there is anything new. Netlify rebuilds production within ~60 seconds of the merge (one production deploy).
 
-If there's nothing new on staging, the action exits without doing anything (no credits spent).
+If there's nothing new on staging, the page reports that production is already up to date.
 
-### What if someone uses `/admin-publish/`?
+### What if someone commits directly to `main`?
 
-That goes straight to `main` and triggers a production deploy. The `Sync staging with main` action (in `.github/workflows/sync-staging.yml`) automatically merges those changes back into staging on every push to main, so the two branches stay in sync.
+Direct `main` commits trigger a production deploy. The `Sync staging with main` action (in `.github/workflows/sync-staging.yml`) automatically merges those changes back into staging on every push to main, so the two branches stay in sync.
 
 ### One-time setup (already done — for reference)
 
 - `staging` branch exists on GitHub
 - Netlify has **Branch deploys** enabled for `staging` (Project configuration → Build & deploy → Continuous deployment → Branches and deploy contexts → "Let me add individual branches" → add `staging`)
 - GitHub Actions are enabled on the repo
+- Netlify has `GITHUB_WORKFLOW_TOKEN` and `PUBLISH_SECRET` set for the publish function
 
 ---
 
@@ -276,22 +270,22 @@ All content editing happens through the CMS at `/admin/`. No code knowledge is n
    - **Tag** — choose one: Event, Infrastructure, Governance, or Community
    - **Excerpt** — a short summary (~200 characters) shown on the listing and home pages
    - **Body** — the full post content, formatted with the toolbar (bold, lists, headings, etc.)
-4. Click **Publish** (top right).
+4. Click **Publish** (top right). In the CMS, this means "save to staging."
 
-The site will rebuild and the post will appear within about 60 seconds.
+The staging site will rebuild and the post will appear at `https://staging--wpia.netlify.app/` within about 60 seconds. Use `/publish/` only after reviewing it there.
 
 ### Editing an existing news post
 
 1. Click **News & Announcements** in the sidebar.
 2. Click the post title.
 3. Make changes.
-4. Click **Publish**.
+4. Click **Publish** to save the edit to staging.
 
 ### Deleting a news post
 
 1. Open the post.
 2. Click the three-dot menu (⋮) near the top right.
-3. Click **Delete**.
+3. Click **Delete**. The deletion is saved to staging.
 
 ### Adding an event
 
@@ -305,7 +299,7 @@ The site will rebuild and the post will appear within about 60 seconds.
    - **Location** — where the event takes place
    - **Type** — Volunteer, Governance, or Social
    - **Description** — optional details shown if someone clicks through
-4. Click **Publish**.
+4. Click **Publish** to save the event to staging.
 
 Events automatically move to the "Past events" section on the Events page once their date passes.
 
@@ -329,9 +323,9 @@ Because Netlify's free tier stores files in the GitHub repo, PDF files are uploa
    - **Date** — display date, e.g. `Apr 2026`
    - **File** — click **Choose a file** → **Upload** → select the PDF from your computer
    - **File Size** — optional, e.g. `102 KB` (check in Finder/Explorer)
-4. Click **Publish**.
+4. Click **Publish** to save the document to staging.
 
-The PDF is committed to the repo and the document row appears on the Documents page.
+The PDF is committed to the repo and the document row appears on the staging Documents page.
 
 ### File size limits
 
@@ -381,17 +375,49 @@ From then on, every form submission sends an email to that address immediately.
 
 ### Revoking CMS access (when a board member leaves)
 
-Removing someone from the Board Members content collection only removes them from the Contact page — it does **not** revoke their CMS login. To do that:
+Removing someone from the Board Members content collection only removes them from the Contact page — it does **not** revoke their CMS login. To revoke login, remove or disable them in DecapBridge.
 
-1. Go to <https://github.com/washingtonplace79/wpia-website/settings/access>.
-2. Find the person in the collaborators list.
-3. Click the **⋯** menu next to their name → **Remove access**.
-
-They immediately lose write access to the repository, which means the CMS will refuse to save their changes the next time they try. They can still *open* `/admin/` and log in with GitHub, but any save attempt will fail. (Their existing GitHub account is unaffected — only their access to this specific repo is removed.)
+Also rotate `PUBLISH_SECRET` in Netlify if that person had the publish passcode.
 
 ---
 
-## 14. Routine maintenance
+## 14. Maintaining environment variables
+
+Environment variables are managed in Netlify: **Project configuration → Environment variables**. After changing any value, trigger a fresh deploy from **Deploys → Trigger deploy → Deploy project**.
+
+### Required variables
+
+| Variable | Purpose | When to rotate |
+|---|---|---|
+| `GITHUB_WORKFLOW_TOKEN` | Lets `/publish/` start the `release.yml` GitHub workflow | When the token owner changes roles, the token expires, or access may be compromised |
+| `PUBLISH_SECRET` | Passcode for the `/publish/` page | When a publisher leaves, after accidental sharing, or on a regular board transition |
+
+### GitHub token requirements
+
+Create `GITHUB_WORKFLOW_TOKEN` as a fine-grained GitHub token scoped only to `washingtonplace79/wpia-website`, with **Actions: Read and write**. Do not use a broad personal access token. The workflow itself uses GitHub Actions' built-in token to merge `staging` into `main`.
+
+### Rotating the publish passcode
+
+1. Generate a new strong passcode.
+2. Replace `PUBLISH_SECRET` in Netlify.
+3. Trigger a fresh deploy.
+4. Share the new passcode only with authorized publishers.
+
+### Rotating the GitHub release token
+
+1. Create a new fine-grained token in GitHub.
+2. Replace `GITHUB_WORKFLOW_TOKEN` in Netlify.
+3. Trigger a fresh deploy.
+4. Test `/publish/` after confirming staging has a harmless pending change, or use the GitHub Action fallback if urgent publishing is needed.
+5. Revoke the old token in GitHub.
+
+### DecapBridge token
+
+DecapBridge also has its own Git access token for CMS edits to `staging`. Maintain that token in DecapBridge, not Netlify. It should also be fine-grained, scoped only to this repo, and have repository contents read/write access.
+
+---
+
+## 15. Routine maintenance
 
 ### When Astro or other packages need updating
 
@@ -411,7 +437,7 @@ Then test locally (`npm run dev`), and push to GitHub. Netlify will deploy the u
 
 ---
 
-## 15. Troubleshooting
+## 16. Troubleshooting
 
 ### The site didn't update after I published something
 
@@ -421,17 +447,15 @@ Then test locally (`npm run dev`), and push to GitHub. Netlify will deploy the u
 
 ### I can't log in to /admin/
 
-- Make sure you accepted the GitHub collaborator invitation email before trying to log in. Pending invitations are listed at <https://github.com/notifications> or in the email itself.
+- Make sure you accepted the DecapBridge invitation email before trying to log in.
 - Try clearing browser cookies and cache, then visit `/admin/` again.
 - If the login popup is blocked, allow popups for the site and try again.
-- Open `https://your-site/auth` directly in a new tab. It should bounce to GitHub. If it shows a 500 error, the `OAUTH_CLIENT_ID` / `OAUTH_CLIENT_SECRET` env vars are missing or were added after the last deploy — see Section 4b/4c.
-- If GitHub shows "redirect_uri mismatch", the OAuth App's **Authorization callback URL** doesn't match the site you're logging in from. Edit it at <https://github.com/settings/developers> to be exactly `https://YOUR-DOMAIN/auth/callback`.
+- Confirm the DecapBridge site is configured with the CMS login URL `https://washingtonplace.org/admin/index.html`.
 
 ### A board member didn't receive their invitation email
 
 - Ask them to check their spam/junk folder.
-- They can also accept directly: have them sign in to GitHub and open <https://github.com/washingtonplace79/wpia-website/invitations>.
-- If the invitation expired (after 7 days), re-invite them at the repo's **Settings → Collaborators** page.
+- Re-send the invitation from DecapBridge if needed.
 
 ### A file uploaded to the Documents section is broken/not downloadable
 
@@ -441,10 +465,15 @@ Then test locally (`npm run dev`), and push to GitHub. Netlify will deploy the u
 ### The CMS shows "Failed to persist entry"
 
 This means the CMS could not commit the change to GitHub. Common causes:
-- The user is not a collaborator on the repo (or their invitation is still pending) — check Section 7.
-- The user's GitHub session expired — log out of the CMS, log back in, retry.
-- The user's collaborator role is **Read** instead of **Write** — bump it to Write at the repo's Settings → Collaborators page.
+- The DecapBridge Git access token is missing, expired, or lacks repository contents write access.
+- The user's DecapBridge session expired — log out of the CMS, log back in, retry.
 - A GitHub API rate limit was hit (rare) — wait a few minutes and try again.
+
+### The publish page says "Publish failed"
+
+- If it says **unauthorized**, the passcode is wrong or `PUBLISH_SECRET` was rotated.
+- If it says **publish_not_configured**, Netlify is missing `GITHUB_WORKFLOW_TOKEN` or `PUBLISH_SECRET`; add them and redeploy.
+- If the release workflow fails with a merge conflict, `staging` cannot be cleanly merged into `main`. A maintainer needs to resolve the conflict in GitHub.
 
 ### The build fails with a Zod validation error
 
