@@ -8,10 +8,6 @@ excerpt: >
 
   I am thrilled to announce we have completed the planting phase at the roundabout!!! The yews finally arrived yesterday and we got them planted and watered this morning. Look for an invitation to join a celebration of this soon!
 ---
-Hey All,
-
-**I am thrilled to announce we have completed the planting phase at the roundabout!!!** The yews finally arrived yesterday and we got them planted and watered this morning. *Look for an invitation to join a celebration of this soon!*
-
 **Weeding Update**
 
 Below is a map of our progress on weeding to date. Plan A is to continue moving in a clockwise direction. It's always more fun to do that with a buddy, so pipe up on the text thread when you're going and see if can find a partner.  Even :30 to 1 hour with 2 people makes for great progress. Or, if you're in a certain mood, you can take it out on the weeds. ;)
