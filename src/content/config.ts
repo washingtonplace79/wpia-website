@@ -30,7 +30,7 @@ const documents = defineCollection({
   type: 'data',
   schema: z.object({
     name: z.string(),
-    category: z.enum(['Governance', 'Minutes', 'Financial']),
+    category: z.enum(["Community", "Governance", "Minutes", "Financial", "Landscaping"]),
     date: z.string(),
     file: z.string(),
     size: z.string().optional(),
