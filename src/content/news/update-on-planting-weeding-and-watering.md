@@ -28,6 +28,6 @@ Step 3: I the estimate the sprinkler will need to run :90 minutes to 2 hours to 
 
 Set up and take down — probably 10 minutes each. 
 
-THANKS FOR ALL YOU'VE DONE AND ARE DOING!!
+THANKS FOR ALL YOU'VE DONE AND ARE DOING!
 
 Melissa
