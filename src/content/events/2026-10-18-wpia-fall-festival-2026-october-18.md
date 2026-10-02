@@ -8,3 +8,4 @@ type: Social
 featured: false
 heroImage: /uploads/wpia-fall-festival-2026.png
 ---
+Come join us!
