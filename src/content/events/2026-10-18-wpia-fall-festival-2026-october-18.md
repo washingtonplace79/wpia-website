@@ -5,7 +5,7 @@ startTime: 5:00 PM
 endTime: 7:00 PM
 location: Lake Ave. Roundabout
 type: Social
-featured: false
+featured: true
 heroImage: /uploads/wpia-fall-festival-2026.png
 ---
 Come join us!
